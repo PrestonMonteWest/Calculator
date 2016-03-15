@@ -15,7 +15,10 @@ import java.util.Map;
 public class Calculator
 {
     private static final Map<Character, Integer> precedence = new HashMap<>(6);
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
     static
     {
         precedence.put('+', 0);
@@ -29,6 +32,7 @@ public class Calculator
     private static final List<String> tokens = new ArrayList<>();
     private static final int precision = 9;
 
+<<<<<<< HEAD
     public static String calculate(String expression) throws SyntaxException
     {
         if (expression.isEmpty())
@@ -39,6 +43,21 @@ public class Calculator
         Stack<Double> stack = new Stack<>();
 
         convert(expression);
+=======
+    public static String calculate(String expression)
+    {
+        Stack<Double> stack = new Stack<>();
+
+        try
+        {
+            convert(expression);
+        }
+        catch (SyntaxException e)
+        {
+            tokens.clear();
+            return e.getMessage();
+        }
+>>>>>>> origin/master
 
         for (String token : tokens)
         {
