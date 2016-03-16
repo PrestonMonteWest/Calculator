@@ -31,30 +31,21 @@ public class CalculatorTest {
 
         String[] expressions = {
             "0", "7)", "1*4.1234", "8.1(7.2(5.4-4)^(0.5))",
-<<<<<<< HEAD
             "5*6((4.3-3)", "*", "8//8", "(1+2)2.5", "()", "",
             "10^1000"
-=======
-            "5*6((4.3-3)", "*", "8//8", "(1+2)2.5", "()"
->>>>>>> origin/master
         };
 
         String[] answers = {
             "0", "Syntax Error: ) at 2", "4.1234", "69.0051546",
             "Syntax Error: ( at 4", "Syntax Error: * at 1",
-<<<<<<< HEAD
             "Syntax Error: / at 3", "7.5", "Syntax Error: ) at 2",
             "", "Infinite or NaN"
-=======
-            "Syntax Error: / at 3", "7.5", "Syntax Error: ) at 2"
->>>>>>> origin/master
         };
 
         String[] results = new String[answers.length];
 
         for (int i = 0; i < expressions.length; i++)
         {
-<<<<<<< HEAD
             try
             {
                 results[i] = Calculator.calculate(expressions[i]);
@@ -63,9 +54,6 @@ public class CalculatorTest {
             {
                 results[i] = e.getMessage();
             }
-=======
-            results[i] = Calculator.calculate(expressions[i]);
->>>>>>> origin/master
         }
 
         assertArrayEquals(answers, results);

@@ -15,10 +15,8 @@ import java.util.Map;
 public class Calculator
 {
     private static final Map<Character, Integer> precedence = new HashMap<>(6);
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/master
+    // operators -> precedence
     static
     {
         precedence.put('+', 0);
@@ -29,10 +27,13 @@ public class Calculator
         precedence.put('^', 2);
     }
 
+    // holds tokens from expression
     private static final List<String> tokens = new ArrayList<>();
+
+    // precision of result
     private static final int precision = 9;
 
-<<<<<<< HEAD
+
     public static String calculate(String expression) throws SyntaxException
     {
         if (expression.isEmpty())
@@ -43,21 +44,6 @@ public class Calculator
         Stack<Double> stack = new Stack<>();
 
         convert(expression);
-=======
-    public static String calculate(String expression)
-    {
-        Stack<Double> stack = new Stack<>();
-
-        try
-        {
-            convert(expression);
-        }
-        catch (SyntaxException e)
-        {
-            tokens.clear();
-            return e.getMessage();
-        }
->>>>>>> origin/master
 
         for (String token : tokens)
         {
@@ -109,18 +95,18 @@ public class Calculator
                     stack.push(Math.pow(op1, op2));
                     break;
 
+                // is number
                 default:
                     stack.push(Double.parseDouble(token));
                     break;
             }
         }
 
-        tokens.clear();
-
+        // format result
         BigDecimal number = new BigDecimal(stack.pop(),
                 new MathContext(precision));
 
-        if (number.scale() > 0)
+        if (number.scale() > 0) // if not integer
         {
             number = number.stripTrailingZeros();
         }
@@ -130,22 +116,30 @@ public class Calculator
 
     private static void convert(String expression) throws SyntaxException
     {
+        // start with empty ArrayList
         tokens.clear();
 
         Stack<Character> ops = new Stack<>();
 
         String num = "";
+
+        /*
+         *  operability of previous symbol
+         *  used for syntax errors
+         */
         boolean isOperable = false;
 
         int count = 0; // counts open parentheses
         int index = 0; // index of first unmatched parenthesis
 
+        // loop through expression
         for (int i = 0; i < expression.length(); i++)
         {
             char temp = expression.charAt(i);
 
             if (Character.isDigit(temp) || temp == '.')
             {
+                // removes leading zeros
                 if (num.startsWith("0"))
                 {
                     num = String.valueOf(temp);
@@ -155,8 +149,9 @@ public class Calculator
                     num += temp;
                 }
             }
-            else
+            else // is not digit or decimal
             {
+                // add previous number to tokens
                 if (!num.isEmpty())
                 {
                     if (isOperable)
@@ -170,61 +165,55 @@ public class Calculator
                     num = "";
                 }
 
-                switch (temp)
+                if (temp == '(')
                 {
-                    case '(':
-                        if (isOperable)
-                        {
-                            push('*', ops);
-                            isOperable = false;
-                        }
-
-                        if (count == 0)
-                        {
-                            index = i;
-                        }
-
-                        count++;
-                        ops.push(temp);
-                        break;
-
-                    case ')':
-                        if (count == 0 || !isOperable)
-                        {
-                            throw new SyntaxException(temp, i + 1);
-                        }
-
-                        while (ops.peek() != '(')
-                        {
-                            tokens.add(String.valueOf(ops.pop()));
-                        }
-
-                        count--;
-                        ops.pop();
-                        isOperable = true;
-                        break;
-
-                    case '+':
-                    case '-':
-                    case '*':
-                    case '/':
-                    case '%':
-                    case '^':
-                        if (!isOperable)
-                        {
-                            throw new SyntaxException(temp, i + 1);
-                        }
-
-                        push(temp, ops);
+                    // implicit multiplication
+                    if (isOperable)
+                    {
+                        push('*', ops);
                         isOperable = false;
-                        break;
+                    }
 
-                    default:
-                        throw new SyntaxException(temp, i + 1);
+                    if (count == 0)
+                    {
+                        index = i;
+                    }
+
+                    count++;
+                    ops.push(temp);
                 }
+                else if (temp == ')')
+                {
+                    if (count == 0 || !isOperable)
+                    {
+                        throw new SyntaxException(temp, i + 1);
+                    }
+
+                    while (ops.peek() != '(')
+                    {
+                        tokens.add(String.valueOf(ops.pop()));
+                    }
+
+                    count--;
+                    ops.pop();
+                    isOperable = true;
+                }
+                else if (precedence.containsKey(temp)) // if valid operator
+                {
+                    if (!isOperable)
+                    {
+                        throw new SyntaxException(temp, i + 1);
+                    }
+
+                    push(temp, ops);
+                    isOperable = false;
+                }
+                else
+                    throw new SyntaxException(temp, i + 1);
             }
         }
 
+        // empty num
         if (!num.isEmpty())
         {
             if (isOperable)
@@ -235,6 +224,7 @@ public class Calculator
             tokens.add(num);
         }
 
+        // empty ops
         while (!ops.isEmpty())
         {
             char temp = ops.pop();
@@ -261,7 +251,7 @@ public class Calculator
 
     private static boolean hasHigherPrecedence(char first, char second)
     {
-        if (precedence.containsKey(second))
+        if (precedence.containsKey(second)) // if operator
         {
             return precedence.get(first) > precedence.get(second);
         }
