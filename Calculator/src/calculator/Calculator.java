@@ -58,17 +58,9 @@ public class Calculator
                     break;
 
                 case "-":
-                    if (stack.size() == 1)
-                    {
-                        stack.push(-stack.pop());
-                    }
-                    else
-                    {
-                        op2 = stack.pop();
-                        op1 = stack.pop();
-                        stack.push(op1 - op2);
-                    }
-
+                    op2 = stack.pop();
+                    op1 = stack.pop();
+                    stack.push(op1 - op2);
                     break;
 
                 case "*":
@@ -139,21 +131,19 @@ public class Calculator
 
             if (Character.isDigit(temp) || temp == '.')
             {
-                // removes leading zeros
-                if (num.startsWith("0"))
-                {
-                    num = String.valueOf(temp);
-                }
-                else
-                {
-                    num += temp;
-                }
+                num += temp;
             }
             else // is not digit or decimal
             {
                 // add previous number to tokens
                 if (!num.isEmpty())
                 {
+                    if (!isNumber(num))
+                    {
+                        int start = i - num.length();
+                        throw new SyntaxException(num, start);
+                    }
+
                     if (isOperable)
                     {
                         push('*', ops);
@@ -186,7 +176,7 @@ public class Calculator
                 {
                     if (count == 0 || !isOperable)
                     {
-                        throw new SyntaxException(temp, i + 1);
+                        throw new SyntaxException(temp, i);
                     }
 
                     while (ops.peek() != '(')
@@ -202,20 +192,34 @@ public class Calculator
                 {
                     if (!isOperable)
                     {
-                        throw new SyntaxException(temp, i + 1);
+                        if (temp == '-')
+                        {
+                            num = String.valueOf(temp);
+                        }
+                        else
+                            throw new SyntaxException(temp, i);
                     }
-
-                    push(temp, ops);
-                    isOperable = false;
+                    else
+                    {
+                        push(temp, ops);
+                        isOperable = false;
+                    }
                 }
                 else
-                    throw new SyntaxException(temp, i + 1);
+                    throw new SyntaxException(temp, i);
             }
         }
 
-        // empty num
+        // check num
         if (!num.isEmpty())
         {
+            if (!isNumber(num))
+            {
+                throw new SyntaxException(
+                        num, expression.length() - num.length()
+                );
+            }
+
             if (isOperable)
             {
                 push('*', ops);
@@ -224,7 +228,7 @@ public class Calculator
             tokens.add(num);
         }
 
-        // empty ops
+        // check ops
         while (!ops.isEmpty())
         {
             char temp = ops.pop();
@@ -234,7 +238,7 @@ public class Calculator
                 tokens.add(String.valueOf(temp));
             }
             else
-                throw new SyntaxException('(', index + 1);
+                throw new SyntaxException('(', index);
         }
     }
 
@@ -257,5 +261,10 @@ public class Calculator
         }
 
         return true;
+    }
+
+    private static boolean isNumber(String number)
+    {
+        return number.matches("-?(0|[1-9][0-9]*)(\\.[0-9]+)?");
     }
 }

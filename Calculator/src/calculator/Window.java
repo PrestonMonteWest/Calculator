@@ -1,28 +1,27 @@
 package calculator;
 
+import java.awt.Color;
 import javax.swing.JFrame;
 import java.awt.event.*;
 import java.math.BigDecimal;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Highlighter;
 
 public class Window extends JFrame implements ActionListener,
         ListSelectionListener
 {
-    // length of all previous expressions
-    private int offset;
-
-    // length of current expression
-    private int length;
+    // line number of current expression
+    private int line;
 
     public Window()
     {
         // sets title
         super("Awesome Calculator");
 
-        offset = 0;
-        length = 0;
+        line = 0;
 
         // <editor-fold defaultstate="collapsed" desc="Generated Code">
         seven = new javax.swing.JButton();
@@ -172,7 +171,6 @@ public class Window extends JFrame implements ActionListener,
 
         expressions.setEditable(false);
         expressions.setFont(expressions.getFont());
-        expressions.setFocusable(false);
         pane.setViewportView(expressions);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -316,8 +314,10 @@ public class Window extends JFrame implements ActionListener,
         if (!command.equals("Clr") && !command.equals("Del")
                 && !command.equals("Ans") && !command.equals("="))
         {
-            expressions.append(command);
-            length++;
+            String text = expressions.getText() + command;
+
+            // removes all highlights
+            expressions.setText(text);
         }
         else
         {
@@ -328,22 +328,22 @@ public class Window extends JFrame implements ActionListener,
                 case "Clr":
                     expressions.setText("");
                     result.setText("");
-                    offset = 0;
-                    length = 0;
+                    line = 0;
                     break;
 
                 case "Del":
                     try
                     {
+                        int start = expressions.getLineStartOffset(line);
+                        int end = expressions.getLineEndOffset(line);
+                        int length = end - start;
+
                         if (length > 0) // if current expression not empty
                         {
                             // delete one character
                             expressions.setText(
-                                    expressions.getText(0, offset + length - 1)
+                                    expressions.getText(0, end - 1)
                             );
-
-                            // modify length of current expression
-                            length--;
                         }
                     }
                     catch (BadLocationException e)
@@ -354,50 +354,91 @@ public class Window extends JFrame implements ActionListener,
                     break;
 
                 case "Ans":
-                    String[] power = null;
+                    String insert = result.getText();
 
-                    try
+                    if (insert.contains("E")) // scientific notation
                     {
-                        power = new BigDecimal(result.getText())
-                                .toString()
-                                .split("E");
-                    }
-                    catch (NumberFormatException e)
-                    {
-                        break;
-                    }
+                        String[] args = insert.split("E");
 
-                    String insert = "("
-                            + power[0]
-                            + "^"
-                            + Integer.parseInt(power[1])
-                            + ")";
+                        try
+                        {
+                            BigDecimal base = new BigDecimal(args[0]);
+                            BigDecimal power = new BigDecimal(args[1]);
+
+                            if (base.scale() > 0)
+                            {
+                                base = base.stripTrailingZeros();
+                            }
+
+                            if (power.scale() > 0)
+                            {
+                                power = power.stripTrailingZeros();
+                            }
+
+                            insert = "(" + base + "^" + power + ")";
+                        }
+                        catch (NumberFormatException e)
+                        {
+                            insert = null;
+                        }
+                    }
+                    else
+                    {
+                        insert = "(" + insert + ")";
+                    }
 
                     // inject previous result into current expression
                     expressions.append(insert);
-
-                    // modify length accordingly
-                    length += insert.length();
 
                     break;
 
                 case "=":
                     String calculation = null;
 
+                    // make the compiler happy
+                    int start = 0;
+
+                    int length;
+
                     try
                     {
+                        start = expressions.getLineStartOffset(line);
+                        length = expressions.getLineEndOffset(line) - start;
+
                         // calculate current expression
                         calculation = Calculator.calculate(
-                                expressions.getText(offset, length)
+                                expressions.getText(start, length)
                         );
                     }
                     catch (BadLocationException e)
                     {
                         e.printStackTrace();
                     }
-                    catch (NumberFormatException | SyntaxException e)
+                    catch (NumberFormatException e)
                     {
                         calculation = e.getMessage();
+                    }
+                    catch (SyntaxException e)
+                    {
+                        calculation = e.getMessage();
+
+                        Highlighter.HighlightPainter p = new DefaultHighlighter
+                                .DefaultHighlightPainter(Color.red);
+
+                        Highlighter hl = expressions.getHighlighter();
+
+                        start += e.getIndex();
+
+                        try
+                        {
+                            hl.addHighlight(
+                                    start, start + e.getError().length(), p
+                            );
+                        }
+                        catch (BadLocationException ex)
+                        {
+                            ex.printStackTrace();
+                        }
                     }
 
                     // set result field to answer
@@ -406,11 +447,8 @@ public class Window extends JFrame implements ActionListener,
                     // start new expression
                     expressions.append("\n");
 
-                    // add length of current expression to offset
-                    offset += length + 1;
-
-                    // empty current expression
-                    length = 0;
+                    // update line number
+                    line++;
 
                     break;
             }
@@ -421,9 +459,9 @@ public class Window extends JFrame implements ActionListener,
     public void valueChanged(ListSelectionEvent event) // list event
     {
         /*
-            Implement what should be done
-            when list item is selected.
-        */
+         *  Implement what should be done
+         *  when list item is selected.
+         */
     }
 
     public static void main(String[] args)
