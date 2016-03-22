@@ -118,6 +118,7 @@ public class Window extends JFrame implements ActionListener,
         mod.setFont(mod.getFont().deriveFont(mod.getFont().getSize() - 1.75f));
         mod.setText("mod");
         mod.addActionListener(this);
+        mod.setActionCommand("%");
 
         subtract.setFont(subtract.getFont());
         subtract.setText("-");
@@ -356,36 +357,55 @@ public class Window extends JFrame implements ActionListener,
                 case "Ans":
                     String insert = result.getText();
 
-                    if (insert.contains("E")) // scientific notation
+                    if (!insert.isEmpty())
                     {
-                        String[] args = insert.split("E");
+                        StringBuilder sb = new StringBuilder();
 
-                        try
+                        if (insert.contains("E")) // scientific notation
                         {
-                            BigDecimal base = new BigDecimal(args[0]);
-                            BigDecimal power = new BigDecimal(args[1]);
+                            String[] args = insert.split("E");
 
-                            if (base.scale() > 0)
+                            try
                             {
-                                base = base.stripTrailingZeros();
-                            }
+                                BigDecimal number = new BigDecimal(args[0]);
+                                BigDecimal power = new BigDecimal(args[1]);
 
-                            if (power.scale() > 0)
+                                if (number.scale() > 0)
+                                {
+                                    number = number.stripTrailingZeros();
+                                }
+
+                                if (power.scale() > 0)
+                                {
+                                    power = power.stripTrailingZeros();
+                                }
+
+                                sb.append("(");
+                                sb.append(number);
+                                sb.append("*");
+                                sb.append(10);
+                                sb.append("^");
+                                sb.append(power);
+                                sb.append(")");
+
+                                insert = sb.toString();
+                            }
+                            catch (NumberFormatException e)
                             {
-                                power = power.stripTrailingZeros();
+                                insert = null;
                             }
-
-                            insert = "(" + base + "^" + power + ")";
                         }
-                        catch (NumberFormatException e)
+                        else
                         {
-                            insert = null;
+                            sb.append("(");
+                            sb.append(insert);
+                            sb.append(")");
+
+                            insert = sb.toString();
                         }
                     }
                     else
-                    {
-                        insert = "(" + insert + ")";
-                    }
+                        insert = null;
 
                     // inject previous result into current expression
                     expressions.append(insert);
