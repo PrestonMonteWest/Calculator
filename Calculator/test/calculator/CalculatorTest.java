@@ -6,7 +6,6 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- *
  * @author Preston West
  */
 public class CalculatorTest {
@@ -23,7 +22,7 @@ public class CalculatorTest {
     }
 
     /**
-     * test of calculate method of class Calculator
+     * Tests the calculate method of class Calculator.
      */
     @Test
     public void testCalculate() {
@@ -46,7 +45,8 @@ public class CalculatorTest {
             "(9+-)",
             ".5",
             "9.",
-            "(1).9"
+            "(1).9",
+            "3.3*"
         };
 
         String[] answers = {
@@ -62,6 +62,7 @@ public class CalculatorTest {
             "",
             "Infinite or NaN",
             "-32.1",
+            "Syntax Error",
             "Syntax Error",
             "Syntax Error",
             "Syntax Error",

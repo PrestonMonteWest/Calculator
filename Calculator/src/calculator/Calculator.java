@@ -31,7 +31,7 @@ public class Calculator
     private static final List<String> tokens = new ArrayList<>();
 
     // precision of result
-    private static final int precision = 9;
+    private static final int precision = 10;
 
 
     public static String calculate(String expression) throws SyntaxException
@@ -115,17 +115,23 @@ public class Calculator
 
         String num = "";
 
-        /*
-         *  operability of previous symbol
-         *  used for syntax errors
+        /**
+         * operability of previous symbol
+         * used for syntax errors
          */
         boolean isOperable = false;
 
         int count = 0; // counts open parentheses
         int index = 0; // index of first unmatched parenthesis
 
+        /**
+         * use variable instead of function call
+         * small speed up (very small)
+         */
+        int length = expression.length();
+
         // loop through expression
-        for (int i = 0; i < expression.length(); i++)
+        for (int i = 0; i < length; i++)
         {
             char temp = expression.charAt(i);
 
@@ -174,9 +180,14 @@ public class Calculator
                 }
                 else if (temp == ')')
                 {
-                    if (count == 0 || !isOperable)
+                    if (count == 0)
                     {
                         throw new SyntaxException(temp, i);
+                    }
+                    else if (!isOperable)
+                    {
+                        // previous character
+                        throw new SyntaxException(temp, i - 1);
                     }
 
                     while (ops.peek() != '(')
@@ -190,6 +201,11 @@ public class Calculator
                 }
                 else if (precedence.containsKey(temp)) // if valid operator
                 {
+                    if (i == length - 1) // if op is last
+                    {
+                        throw new SyntaxException(temp, i);
+                    }
+
                     if (!isOperable)
                     {
                         if (temp == '-')
@@ -215,9 +231,7 @@ public class Calculator
         {
             if (!isNumber(num))
             {
-                throw new SyntaxException(
-                        num, expression.length() - num.length()
-                );
+                throw new SyntaxException(num, length - num.length());
             }
 
             if (isOperable)
@@ -263,6 +277,12 @@ public class Calculator
         return true;
     }
 
+    /**
+     * Tests if a string is numerical using a regular expression.
+     *
+     * @param number the number to test
+     * @return       true if and only if the specified string is numerical
+     */
     private static boolean isNumber(String number)
     {
         return number.matches("-?(0|[1-9][0-9]*)(\\.[0-9]+)?");
