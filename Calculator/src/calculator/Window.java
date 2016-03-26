@@ -561,8 +561,8 @@ public class Window extends javax.swing.JFrame
         if (!command.equals("Clr") && !command.equals("Del")
                 && !command.equals("Ans") && !command.equals("="))
         {
-            pointer = getLastLine();
-            removeHighlight();
+            reset();
+
             expressions.append(command);
         }
         else
@@ -607,6 +607,8 @@ public class Window extends javax.swing.JFrame
 
                 // delete last character
                 doc.remove(doc.getLength() - 1, 1);
+
+                reset();
             }
         }
         catch (BadLocationException e)
@@ -649,12 +651,10 @@ public class Window extends javax.swing.JFrame
                     sb.append("^");
                     sb.append(power);
                     sb.append(")");
-
-                    insert = sb.toString();
                 }
                 catch (NumberFormatException e)
                 {
-                    insert = null;
+                    return;
                 }
             }
             else
@@ -662,12 +662,12 @@ public class Window extends javax.swing.JFrame
                 sb.append("(");
                 sb.append(insert);
                 sb.append(")");
-
-                insert = sb.toString();
             }
+
+            insert = sb.toString();
+
+            reset();
         }
-        else
-            insert = null;
 
         // insert previous result into current expression
         expressions.append(insert);
@@ -677,6 +677,7 @@ public class Window extends javax.swing.JFrame
     {
         String calculation = null;
 
+        // flag for pointer
         boolean newLine = false;
 
         try
@@ -698,6 +699,12 @@ public class Window extends javax.swing.JFrame
                  * (sloppily) fixes highlighting bug as well
                  */
                 expressions.append("\n");
+
+                if (highlight != null)
+                {
+                    removeHighlight();
+                }
+
                 newLine = true;
             }
             else
@@ -737,7 +744,7 @@ public class Window extends javax.swing.JFrame
             }
         }
 
-        if (newLine && highlight == null)
+        if (newLine)
         {
             pointer++;
         }
@@ -766,56 +773,43 @@ public class Window extends javax.swing.JFrame
     {
         int key = event.getKeyCode();
 
-        switch (key)
+        if (key == KeyEvent.VK_UP || key == KeyEvent.VK_DOWN)
         {
-            case KeyEvent.VK_UP:
-                if (pointer > 0)
-                {
-                    pointer--;
-
-                    try
-                    {
-                        highlightLine(pointer, selection, true);
-                    }
-                    catch (BadLocationException e)
-                    {
-                        e.printStackTrace();
-                    }
-                }
-
-                break;
-
-            case KeyEvent.VK_DOWN:
-                int lastLine = getLastLine();
+                movePointer(key == KeyEvent.VK_UP);
 
                 try
                 {
-                    String lastText = getLineText(getLastLine(), false);
-
-                    if (pointer < lastLine - 1)
-                    {
-                        pointer++;
-
-                        highlightLine(pointer, selection, true);
-                    }
-                    else if (!lastText.isEmpty() && pointer < lastLine)
-                    {
-                        pointer++;
-
-                        highlightLine(pointer, selection, false);
-                    }
+                    highlightLine(pointer, selection, true);
                 }
                 catch (BadLocationException e)
                 {
                     e.printStackTrace();
                 }
-
-                break;
-
-            case KeyEvent.VK_ENTER:
+        }
+        else if (key == KeyEvent.VK_ENTER)
+        {
+            if (pointer == getLastLine())
+            {
                 equals.doClick();
+            }
+            else
+            {
+                try
+                {
+                    String expression = getLineText(pointer, true);
 
-                break;
+                    reset();
+
+                    int start = expressions.getLineStartOffset(pointer);
+                    String history = expressions.getText(0, start);
+
+                    expressions.setText(history + expression);
+                }
+                catch (BadLocationException e)
+                {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -857,6 +851,29 @@ public class Window extends javax.swing.JFrame
         int end = expressions.getLineEndOffset(line);
 
         return end + (hasNewLine ? -1 : 0);
+    }
+
+    private void reset()
+    {
+        equals.setEnabled(true);
+        pointer = getLastLine();
+        removeHighlight();
+    }
+
+    private void movePointer(boolean up)
+    {
+        if (up)
+        {
+            if (pointer > 0)
+            {
+                pointer--;
+                equals.setEnabled(false);
+            }
+        }
+        else if (pointer < getLastLine() - 1)
+        {
+            pointer++;
+        }
     }
 
     /**
