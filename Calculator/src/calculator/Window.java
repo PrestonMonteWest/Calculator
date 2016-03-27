@@ -777,14 +777,19 @@ public class Window extends javax.swing.JFrame
         {
                 movePointer(key == KeyEvent.VK_UP);
 
-                try
+                if (pointer != getLastLine())
                 {
-                    highlightLine(pointer, selection, true);
+                    try
+                    {
+                        highlightLine(pointer, selection, true);
+                    }
+                    catch (BadLocationException e)
+                    {
+                        e.printStackTrace();
+                    }
                 }
-                catch (BadLocationException e)
-                {
-                    e.printStackTrace();
-                }
+                else
+                    reset();
         }
         else if (key == KeyEvent.VK_ENTER)
         {
@@ -870,7 +875,7 @@ public class Window extends javax.swing.JFrame
                 equals.setEnabled(false);
             }
         }
-        else if (pointer < getLastLine() - 1)
+        else if (pointer < getLastLine())
         {
             pointer++;
         }
