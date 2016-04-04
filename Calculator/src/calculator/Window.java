@@ -1,6 +1,7 @@
 package calculator;
 
 import java.awt.Color;
+import javax.swing.JButton;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
@@ -29,6 +30,9 @@ public class Window extends javax.swing.JFrame
     private final Color error = new Color(255, 0, 0, 100); // light red
     private final Color selection = new Color(0, 0, 255, 50); // light blue
 
+    // number mapping for buttons
+    JButton[] buttons;
+
     /**
      * Creates new form Window
      */
@@ -37,11 +41,14 @@ public class Window extends javax.swing.JFrame
         // sets title
         super("Awesome Calculator");
 
-        // point to first line
-        pointer = 0;
-
         // generated design code
         initComponents();
+
+        // sets up the map
+        buttons = new JButton[]{
+            zero, one, two, three, four,
+            five, six, seven, eight, nine
+        };
 
         // center frame on screen
         setLocationRelativeTo(null);
@@ -570,6 +577,9 @@ public class Window extends javax.swing.JFrame
     }// </editor-fold>//GEN-END:initComponents
 
     private void buttonClicked(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonClicked
+
+        // add color changing code here
+
         String command = evt.getActionCommand();
 
         // if number, operation, or parentheses
@@ -617,7 +627,7 @@ public class Window extends javax.swing.JFrame
      */
     private void appLaunch(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_appLaunch
         String path = System.getProperty("user.dir"); // Get the application path
-        File f = new File(path + "\\expressions.txt"); // Create a file object
+        File f = new File(path + File.separator + "expressions.txt"); // Create a file object
 
         if(f.exists()) // file exists
         {
@@ -625,13 +635,18 @@ public class Window extends javax.swing.JFrame
             {
                 FileReader fr = new FileReader(f); // Create a reader
                 BufferedReader br = new BufferedReader(fr); // Create a buffer for the reader
-                String expr;
+                int charCode;
 
-                while((expr = br.readLine()) != null) // Read the file
+                // includes newline characters
+                while((charCode = br.read()) != -1) // Read the file
                 {
-                    expressions.append(expr + "\n");
+                    expressions.append(String.valueOf((char)charCode));
                 }
 
+                /*
+                set pointer to last line
+                if expressions empty, then pointer = 0
+                */
                 pointer = getLastLine();
                 fr.close();
             }
@@ -648,12 +663,13 @@ public class Window extends javax.swing.JFrame
 
     /**
      * This method is called upon closing the application in order to
-     * save the expression stored in the expressions window to a file.
+     * save the expression(s) stored in the expressions window to a file.
      * The files location is the application directory.
      */
     private void appClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_appClosing
         String path = System.getProperty("user.dir"); // Get the application path
-        File f = new File(path + "\\expressions.txt"); // Create a file object for the path
+        File f = new File(path + File.separator + "expressions.txt"); // Create a file object for the path
+
         if(!f.exists()) // File does not exist
         {
             try
@@ -676,7 +692,6 @@ public class Window extends javax.swing.JFrame
         {
             JOptionPane.showMessageDialog(null, e.getMessage(), "IO Exception", JOptionPane.ERROR_MESSAGE);
         }
-
     }//GEN-LAST:event_appClosing
 
     private void deleteChar()
@@ -855,11 +870,12 @@ public class Window extends javax.swing.JFrame
 
     private void keyPressed(KeyEvent event)
     {
-        int key = event.getKeyCode();
+        char key = event.getKeyChar();
+        int keyCode = event.getKeyCode();
 
-        if (key == KeyEvent.VK_UP || key == KeyEvent.VK_DOWN)
+        if (keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_DOWN)
         {
-                movePointer(key == KeyEvent.VK_UP);
+                movePointer(keyCode == KeyEvent.VK_UP);
 
                 if (pointer != getLastLine())
                 {
@@ -875,7 +891,11 @@ public class Window extends javax.swing.JFrame
                 else
                     reset();
         }
-        else if (key == KeyEvent.VK_ENTER)
+        else if (keyCode == KeyEvent.VK_BACK_SPACE)
+        {
+            deleteChar();
+        }
+        else if (keyCode == KeyEvent.VK_ENTER)
         {
             if (pointer == getLastLine())
             {
@@ -899,6 +919,17 @@ public class Window extends javax.swing.JFrame
                     e.printStackTrace();
                 }
             }
+        }
+        else if (Character.isDigit(event.getKeyChar())) // if number
+        {
+            if (keyCode >= KeyEvent.VK_0 && keyCode <= KeyEvent.VK_9)
+            {
+                keyCode -= KeyEvent.VK_0;
+            }
+            else
+                keyCode -= KeyEvent.VK_NUMPAD0;
+
+            buttons[keyCode].doClick();
         }
     }
 
