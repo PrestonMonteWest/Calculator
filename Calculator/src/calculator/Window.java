@@ -609,15 +609,16 @@ public class Window extends javax.swing.JFrame
             }
         }
     }//GEN-LAST:event_buttonClicked
-    /*
-    * This method is called upon opening of the application.
-    * The prescence of an existing data file is checked for
-    * and if it exists, is loaded into the expressions window.
-    */
 
+    /**
+     * This method is called upon opening of the application.
+     * The presence of an existing data file is checked for
+     * and if it exists, is loaded into the expressions window.
+     */
     private void appLaunch(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_appLaunch
         String path = System.getProperty("user.dir"); // Get the application path
         File f = new File(path + "\\expressions.txt"); // Create a file object
+
         if(f.exists()) // file exists
         {
             try
@@ -625,32 +626,33 @@ public class Window extends javax.swing.JFrame
                 FileReader fr = new FileReader(f); // Create a reader
                 BufferedReader br = new BufferedReader(fr); // Create a buffer for the reader
                 String expr;
-                while((expr = br.readLine()) != null) // read the file
+
+                while((expr = br.readLine()) != null) // Read the file
                 {
                     expressions.append(expr + "\n");
                 }
+
+                pointer = getLastLine();
                 fr.close();
             }
             catch(FileNotFoundException e)
             {
                 JOptionPane.showMessageDialog(null, e.getMessage(), "File Not Found Exception", JOptionPane.ERROR_MESSAGE);
-
             }
             catch(IOException e)
             {
                 JOptionPane.showMessageDialog(null, e.getMessage(), "IO Exception", JOptionPane.ERROR_MESSAGE);
-
             }
         }
-
     }//GEN-LAST:event_appLaunch
-    /*
-    * This method is called upon closing the application in order to 
-    * save the expression stored in the expressions window to a file.
-    * The files location is the application directory.
-    */
+
+    /**
+     * This method is called upon closing the application in order to
+     * save the expression stored in the expressions window to a file.
+     * The files location is the application directory.
+     */
     private void appClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_appClosing
-        String path = System.getProperty("user.dir"); //Get the application path
+        String path = System.getProperty("user.dir"); // Get the application path
         File f = new File(path + "\\expressions.txt"); // Create a file object for the path
         if(!f.exists()) // File does not exist
         {
@@ -661,14 +663,11 @@ public class Window extends javax.swing.JFrame
             catch(IOException e)
             {
                 JOptionPane.showMessageDialog(null, e.getMessage(), "IO Exception", JOptionPane.ERROR_MESSAGE);
-
             }
         }
-        
+
         try // Write the contents of the expressions window to the file
         {
-            String exp = expressions.getText();
-            System.out.println(exp);
             FileWriter fw = new FileWriter(f);
             fw.write(expressions.getText());
             fw.close();
@@ -676,7 +675,6 @@ public class Window extends javax.swing.JFrame
         catch(IOException e)
         {
             JOptionPane.showMessageDialog(null, e.getMessage(), "IO Exception", JOptionPane.ERROR_MESSAGE);
-
         }
 
     }//GEN-LAST:event_appClosing
@@ -780,10 +778,10 @@ public class Window extends javax.swing.JFrame
                     return;
                 }
 
-                /**
-                 * starts a new expression
-                 * (sloppily) fixes highlighting bug as well
-                 */
+                /*
+                starts a new expression
+                (sloppily) fixes highlighting bug as well
+                */
                 expressions.append("\n");
 
                 if (highlight != null)
@@ -965,7 +963,7 @@ public class Window extends javax.swing.JFrame
         {
             pointer++;
         }
-    }                      
+    }
 
     /**
      * @param args the command line arguments
