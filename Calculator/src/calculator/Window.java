@@ -895,7 +895,7 @@ public class Window extends javax.swing.JFrame
         {
             deleteChar();
         }
-        else if (keyCode == KeyEvent.VK_ENTER)
+        else if (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_EQUALS)
         {
             if (pointer == getLastLine())
             {
@@ -920,16 +920,33 @@ public class Window extends javax.swing.JFrame
                 }
             }
         }
-        else if (Character.isDigit(event.getKeyChar())) // if number
+        else if (keyCode >= KeyEvent.VK_NUMPAD0
+                && keyCode <= KeyEvent.VK_NUMPAD9) // if number
         {
-            if (keyCode >= KeyEvent.VK_0 && keyCode <= KeyEvent.VK_9)
-            {
-                keyCode -= KeyEvent.VK_0;
-            }
-            else
-                keyCode -= KeyEvent.VK_NUMPAD0;
+            int number = keyCode - KeyEvent.VK_NUMPAD0;
 
-            buttons[keyCode].doClick();
+            buttons[number].doClick();
+        }
+        else
+        {
+            switch(keyCode)
+            {
+                case KeyEvent.VK_DECIMAL:
+                    decimal.doClick();
+                    break;
+                case KeyEvent.VK_MULTIPLY:
+                    multiply.doClick();
+                    break;
+                case KeyEvent.VK_DIVIDE:
+                    divide.doClick();
+                    break;
+                case KeyEvent.VK_ADD:
+                    add.doClick();
+                    break;
+                case KeyEvent.VK_SUBTRACT:
+                    subtract.doClick();
+                    break;
+            }
         }
     }
 
