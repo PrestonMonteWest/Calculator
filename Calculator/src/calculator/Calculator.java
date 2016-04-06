@@ -4,6 +4,7 @@ import java.util.Stack;
 import java.util.ArrayList;
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,62 +42,63 @@ public class Calculator
             return expression;
         }
 
-        Stack<Double> stack = new Stack<>();
+        Stack<BigDecimal> stk = new Stack<>();
 
         convert(expression);
 
+        MathContext context = new MathContext(precision);
+        BigDecimal op1, op2;
+
         for (String token : tokens)
         {
-            double op1, op2;
-
             switch (token)
             {
                 case "+":
-                    op2 = stack.pop();
-                    op1 = stack.pop();
-                    stack.push(op1 + op2);
+                    op2 = stk.pop();
+                    op1 = stk.pop();
+                    stk.push(op1.add(op2));
                     break;
 
                 case "-":
-                    op2 = stack.pop();
-                    op1 = stack.pop();
-                    stack.push(op1 - op2);
+                    op2 = stk.pop();
+                    op1 = stk.pop();
+                    stk.push(op1.subtract(op2));
                     break;
 
                 case "*":
-                    op2 = stack.pop();
-                    op1 = stack.pop();
-                    stack.push(op1 * op2);
+                    op2 = stk.pop();
+                    op1 = stk.pop();
+                    stk.push(op1.multiply(op2));
                     break;
 
                 case "/":
-                    op2 = stack.pop();
-                    op1 = stack.pop();
-                    stack.push(op1 / op2);
+                    op2 = stk.pop();
+                    op1 = stk.pop();
+                    stk.push(op1.divide(op2));
                     break;
 
                 case "%":
-                    op2 = stack.pop();
-                    op1 = stack.pop();
-                    stack.push(op1 % op2);
+                    op2 = stk.pop();
+                    op1 = stk.pop();
+                    stk.push(op1.remainder(op2));
                     break;
 
                 case "^":
-                    op2 = stack.pop();
-                    op1 = stack.pop();
-                    stack.push(Math.pow(op1, op2));
+                    double d2 = stk.pop().doubleValue();
+                    double d1 = stk.pop().doubleValue();
+
+                    stk.push(new BigDecimal(Math.pow(d1, d2)));
                     break;
 
                 // is number
                 default:
-                    stack.push(Double.parseDouble(token));
+                    stk.push(new BigDecimal(token));
                     break;
             }
         }
 
         // format result
-        BigDecimal number = new BigDecimal(stack.pop(),
-                new MathContext(precision));
+        BigDecimal number = new BigDecimal(stk.pop().toPlainString(), context);
 
         if (number.scale() > 0) // if not integer
         {

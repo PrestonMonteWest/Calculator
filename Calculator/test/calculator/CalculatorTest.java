@@ -53,7 +53,7 @@ public class CalculatorTest {
             "0",
             "Syntax Error",
             "4.1234",
-            "69.0051546",
+            "69.00515459",
             "Syntax Error",
             "Syntax Error",
             "Syntax Error",

@@ -13,12 +13,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import javax.swing.JOptionPane;
+import javax.swing.ListModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Document;
 import javax.swing.text.Highlighter;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
 
-public class Window extends javax.swing.JFrame
+public class Window extends javax.swing.JFrame implements ListSelectionListener
 {
     // points to current expression
     private int pointer;
@@ -43,6 +46,8 @@ public class Window extends javax.swing.JFrame
 
         // generated design code
         initComponents();
+
+        conversions.addListSelectionListener(this);
 
         // sets up the map
         buttons = new JButton[]{
@@ -578,7 +583,7 @@ public class Window extends javax.swing.JFrame
 
     private void buttonClicked(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonClicked
 
-        // add color changing code here
+        // add button color-changing code here
 
         String command = evt.getActionCommand();
 
@@ -698,7 +703,7 @@ public class Window extends javax.swing.JFrame
     {
         try
         {
-            String current = getLineText(getLastLine(), false);
+            String current = getLineText(getLastLine());
 
             if (!current.isEmpty())
             {
@@ -785,7 +790,7 @@ public class Window extends javax.swing.JFrame
 
             if (pointer == getLastLine()) // if new expression
             {
-                expression = getLineText(pointer, false);
+                expression = getLineText(pointer);
 
                 if (expression.isEmpty())
                 {
@@ -808,7 +813,7 @@ public class Window extends javax.swing.JFrame
             }
             else
             {
-                expression = getLineText(pointer, true);
+                expression = getLineText(pointer);
             }
 
             // calculate selected expression
@@ -852,15 +857,14 @@ public class Window extends javax.swing.JFrame
         result.setText(calculation);
     }
 
-    private String getLineText(int line, boolean hasNewLine)
-            throws BadLocationException
+    private String getLineText(int line) throws BadLocationException
     {
         int start = expressions.getLineStartOffset(line);
-        int end = getEnd(line, hasNewLine);
+        int end = expressions.getLineEndOffset(line);
 
         int length = end - start;
 
-        return expressions.getText(start, length);
+        return chomp(expressions.getText(start, length));
     }
 
     private int getLastLine()
@@ -881,7 +885,7 @@ public class Window extends javax.swing.JFrame
                 {
                     try
                     {
-                        highlightLine(pointer, selection, true);
+                        highlightLine(pointer, selection);
                     }
                     catch (BadLocationException e)
                     {
@@ -905,7 +909,7 @@ public class Window extends javax.swing.JFrame
             {
                 try
                 {
-                    String expression = getLineText(pointer, true);
+                    String expression = getLineText(pointer);
 
                     reset();
 
@@ -950,6 +954,84 @@ public class Window extends javax.swing.JFrame
         }
     }
 
+    @Override
+    public void valueChanged(ListSelectionEvent event)
+    {
+        String expression;
+
+        try
+        {
+            expression = getLineText(pointer);
+        }
+        catch (BadLocationException e)
+        {
+            e.printStackTrace();
+            return;
+        }
+
+        if (event.getValueIsAdjusting() || conversions.isSelectionEmpty())
+        {
+            return;
+        }
+
+        if (expression.isEmpty())
+        {
+            conversions.clearSelection();
+            return;
+        }
+
+        String conversion = (String)conversions.getSelectedValue();
+        ListModel<String> list = conversions.getModel();
+
+        int i;
+        for (i = 0; i < list.getSize(); i++)
+        {
+            if (conversion.equals(list.getElementAt(i)))
+            {
+                break;
+            }
+        }
+
+        switch(i)
+        {
+            case 0:
+                expression = "(" + expression + ")*0.3048";
+                break;
+            case 1:
+                expression = "(" + expression + ")*3.2808";
+                break;
+            case 2:
+                expression = "(" + expression + ")*0.4536";
+                break;
+            case 3:
+                expression = "(" + expression + ")*2.2046";
+                break;
+            case 4:
+                expression = "(" + expression + ")*3.7854";
+                break;
+            case 5:
+                expression = "(" + expression + ")*0.2642";
+                break;
+        }
+
+        reset();
+        conversions.clearSelection();
+
+        try
+        {
+            int start = expressions.getLineStartOffset(pointer);
+            String history = expressions.getText(0, start);
+
+            expressions.setText(history + expression);
+
+            equals.doClick();
+        }
+        catch (BadLocationException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
     private void highlight(int start, int end, Color color)
             throws BadLocationException
     {
@@ -973,21 +1055,19 @@ public class Window extends javax.swing.JFrame
         }
     }
 
-    private void highlightLine(int line, Color color, boolean hasNewLine)
-            throws BadLocationException
+    private void highlightLine(int line, Color color) throws BadLocationException
     {
         int start = expressions.getLineStartOffset(line);
-        int end = getEnd(line, hasNewLine);
+
+        String expression = getLineText(line);
+        int end = start + expression.length();
 
         highlight(start, end, color);
     }
 
-    private int getEnd(int line, boolean hasNewLine)
-            throws BadLocationException
+    private String chomp(String text)
     {
-        int end = expressions.getLineEndOffset(line);
-
-        return end + (hasNewLine ? -1 : 0);
+        return text.replaceFirst("\n", "");
     }
 
     private void reset()
