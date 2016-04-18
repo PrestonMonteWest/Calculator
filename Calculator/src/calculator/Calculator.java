@@ -74,7 +74,7 @@ public class Calculator
                 case "/":
                     op2 = stk.pop();
                     op1 = stk.pop();
-                    stk.push(op1.divide(op2));
+                    stk.push(op1.divide(op2, precision, RoundingMode.HALF_UP));
                     break;
 
                 case "%":
