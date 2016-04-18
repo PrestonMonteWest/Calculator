@@ -33,6 +33,13 @@ public class Window extends javax.swing.JFrame implements ListSelectionListener
     private final Color error = new Color(255, 0, 0, 100); // light red
     private final Color selection = new Color(0, 0, 255, 50); // light blue
 
+    // button colors
+    private final Color init;
+    private final Color change = Color.CYAN;
+
+    // used for line count in expressions
+    private final int MAX = 10;
+
     // number mapping for buttons
     JButton[] buttons;
 
@@ -54,6 +61,9 @@ public class Window extends javax.swing.JFrame implements ListSelectionListener
             zero, one, two, three, four,
             five, six, seven, eight, nine
         };
+
+        // stores the initial button color
+        init = zero.getBackground();
 
         // center frame on screen
         setLocationRelativeTo(null);
@@ -583,16 +593,24 @@ public class Window extends javax.swing.JFrame implements ListSelectionListener
 
     private void buttonClicked(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonClicked
 
-        // add button color-changing code here
+        // gets the button
+        JButton button = (JButton)evt.getSource();
 
+        // gets the command
         String command = evt.getActionCommand();
+
+        if (button.getBackground().equals(init))
+        {
+            button.setBackground(change);
+        }
+        else
+            button.setBackground(init);
 
         // if number, operation, or parentheses
         if (!command.equals("Clr") && !command.equals("Del")
                 && !command.equals("Ans") && !command.equals("="))
         {
             reset();
-
             expressions.append(command);
         }
         else
@@ -648,11 +666,10 @@ public class Window extends javax.swing.JFrame implements ListSelectionListener
                     expressions.append(String.valueOf((char)charCode));
                 }
 
-                /*
-                set pointer to last line
-                if expressions empty, then pointer = 0
-                */
+                // set pointer to last line
+                // if expressions empty, then pointer = 0
                 pointer = getLastLine();
+
                 fr.close();
             }
             catch(FileNotFoundException e)
@@ -769,7 +786,6 @@ public class Window extends javax.swing.JFrame implements ListSelectionListener
             }
 
             insert = sb.toString();
-
             reset();
         }
 
@@ -850,7 +866,28 @@ public class Window extends javax.swing.JFrame implements ListSelectionListener
 
         if (newLine)
         {
-            pointer++;
+            // + 1 to include newly-added line
+            if (expressions.getLineCount() != MAX + 1)
+            {
+                pointer++;
+            }
+            else
+            {
+                try
+                {
+                    int start = expressions.getLineStartOffset(1);
+                    int end = expressions.getLineEndOffset(pointer);
+                    int length = end - start;
+
+                    String expr = expressions.getText(start, length);
+
+                    expressions.setText(expr);
+                }
+                catch(BadLocationException e)
+                {
+                    e.printStackTrace();
+                }
+            }
         }
 
         // set result field to answer
@@ -874,7 +911,6 @@ public class Window extends javax.swing.JFrame implements ListSelectionListener
 
     private void keyPressed(KeyEvent event)
     {
-        char key = event.getKeyChar();
         int keyCode = event.getKeyCode();
 
         if (keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_DOWN)
@@ -995,22 +1031,22 @@ public class Window extends javax.swing.JFrame implements ListSelectionListener
         switch(i)
         {
             case 0:
-                expression = "(" + expression + ")*0.3048";
+                expression = "(" + expression + ")0.3048";
                 break;
             case 1:
-                expression = "(" + expression + ")*3.2808";
+                expression = "(" + expression + ")3.2808";
                 break;
             case 2:
-                expression = "(" + expression + ")*0.4536";
+                expression = "(" + expression + ")0.4536";
                 break;
             case 3:
-                expression = "(" + expression + ")*2.2046";
+                expression = "(" + expression + ")2.2046";
                 break;
             case 4:
-                expression = "(" + expression + ")*3.7854";
+                expression = "(" + expression + ")3.7854";
                 break;
             case 5:
-                expression = "(" + expression + ")*0.2642";
+                expression = "(" + expression + ")0.2642";
                 break;
         }
 
