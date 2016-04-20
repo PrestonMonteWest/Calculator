@@ -592,19 +592,8 @@ public class Window extends javax.swing.JFrame implements ListSelectionListener
     }// </editor-fold>//GEN-END:initComponents
 
     private void buttonClicked(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonClicked
-
-        // gets the button
-        JButton button = (JButton)evt.getSource();
-
         // gets the command
         String command = evt.getActionCommand();
-
-        if (button.getBackground().equals(init))
-        {
-            button.setBackground(change);
-        }
-        else
-            button.setBackground(init);
 
         // if number, operation, or parentheses
         if (!command.equals("Clr") && !command.equals("Del")
